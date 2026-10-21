@@ -3,48 +3,50 @@
 ## Commands
 
 **Frontend**
-- `npm run dev` — start Vite dev server
+- `npm run dev` — Vite dev server
 - `npm run build` — production build
 
-**Backend (PHP/Laravel)**
-- `php artisan serve` — start dev server
+**Backend**
+- `php artisan serve` — dev server
 - `php artisan migrate` — run migrations
 - `php artisan migrate:fresh --seed` — reset DB + seed
-- `php artisan test` — run PHPUnit tests
-- `./vendor/bin/pint` — format code (Laravel Pint)
+- `php artisan test` — PHPUnit (Unit + Feature suites)
+- `vendor/bin/pint` — format code (Laravel Pint, default Laravel preset; no `pint.json`)
 
-**Cache/Config**
-- `php artisan optimize:clear` — clear all caches (config, route, view, compiled)
-- `php artisan config:cache` — cache config
-- `php artisan route:cache` — cache routes
+**Cache**
+- `/rekac` (web route) — clears config/cache/view/route + re-runs `config:cache`. Primary way to reset caches in this app.
+- `php artisan optimize:clear` — same effect from CLI
 
-## Key Facts
+## Stack
 
-- **Framework**: Laravel 11, PHP 8.2+
-- **Database**: SQLite (default, file at `database/database.sqlite`)
-- **Frontend**: Vite + laravel-vite-plugin (`resources/css/app.css`, `resources/js/app.js`)
-- **Testing**: PHPUnit (feature + unit), `tests/TestCase.php` base class
-- **Code Style**: Laravel Pint (PSR-12 + Laravel preset)
-- **Entry Points**: `bootstrap/app.php` (app config), `routes/web.php` (web routes), `public/index.php` (HTTP entry)
-- **Env**: `.env` loaded, `APP_KEY` already set, `DB_CONNECTION=sqlite`
+- Laravel 11, PHP 8.2+, SQLite (`database/database.sqlite`)
+- Frontend: Vite + laravel-vite-plugin, **Bootstrap 5 + Sass**. Vite inputs are `resources/sass/app.scss` and `resources/js/app.js` (note: SCSS, not CSS).
+- Auth scaffolding from `laravel/ui` (`Auth::routes()`, `HomeController`), plus `spatie/laravel-permission` (permission tables migration is dated `2026_10_19`).
+- `laravel/tinker` available.
 
-## Project Structure
+## Routing / App shape
 
-```
-app/              # Application code (Models, Controllers, Providers)
-bootstrap/app.php # Application configuration
-config/           # Config files
-database/         # Migrations, factories, seeders, SQLite file
-public/           # Public entry point, built assets
-resources/        # Views, CSS, JS
-routes/           # web.php, console.php
-tests/            # Feature + Unit tests
-vendor/           # Composer dependencies
-```
+- `routes/web.php` is **Laravel 7 style**: everything is wrapped in `Route::group(['namespace' => 'App\Http\Controllers'], ...)` so string controllers (`'Dashboard\Dashboard@index'`) resolve — Laravel 11 has no default controller namespace.
+- Public site pages render Blade views under `resources/views/public/*` (home, produk, blog, layanan, faq, contact, produk-detail) via inline closures — no controllers for these.
+- Auth routes from `Auth::routes()`; `/home` -> `HomeController@index`.
+- Route names are only set where actually used (`admin.dashboard`, `member.dashboard`); `Auth::routes()` registers login/logout/register/password.* names.
+- Controllers: **no `Admin` namespace/folder**. Admin-side modules use one folder per module, class name = module name (no `Controller` suffix): `Dashboard\Dashboard`, `Produk\Produk`, `Blog\Blog`, `Pesanan\Pesanan`, `Membership\Membership`, `User\User`, `Role\Role`, `HakAkses\HakAkses`. Master data: top-level `Master\<Entity>Controller`. Member area: `Member\*` (keeps `Controller` suffix).
+- `public/backend/**` holds vendored admin-template assets (plugins like daterangepicker, mapael). Do not treat as source to build.
+
+## Conventions — master data
+
+- Controllers: `App\Http\Controllers\Master\<Entity>Controller`; views: `resources/views/admin/master/<entity>/index.blade.php`.
+- Models: `App\Models\Master\<Entity>` with `protected $table = 'm_<entity>'` (e.g. `m_kategori`). Master CRUD uses Eloquent models; produk/others often use query builder.
+- **No master migrations/tables yet** — do not create DB tables until explicitly asked.
+
+## Testing
+
+- `phpunit.xml` defines Unit + Feature suites; base class `tests/TestCase.php`.
+- Default test env uses `CACHE_STORE=array`, `QUEUE_CONNECTION=sync`, `SESSION_DRIVER=array`, `MAIL_MAILER=array`.
+- SQLite `:memory:` for DB is **commented out** in `phpunit.xml`; tests run against the real SQLite file unless you uncomment/fix those lines.
 
 ## Gotchas
 
-- SQLite file lives at `database/database.sqlite` (created on `post-create-project-cmd`)
-- Route `/rekac` clears all caches — useful during development
-- No separate `php artisan key:generate` needed (already in `.env`)
-- Vite inputs: `resources/css/app.css`, `resources/js/app.js`
+- Vite input is `resources/sass/app.scss` — an agent assuming `resources/css/app.css` will be wrong.
+- `APP_KEY` already set in `.env`; no `key:generate` needed.
+- `.env.example` uses `database` drivers for session/cache/queue (tables exist via migrations), not file/redis.

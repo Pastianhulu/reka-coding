@@ -1,0 +1,5 @@
+@extends('errors.layout')
+@section('title', __('Akses Ditolak'))
+@section('code', '403')
+@section('icon', 'bi-shield-lock')
+@section('message_title', 'Oops! Akses Ditolak')

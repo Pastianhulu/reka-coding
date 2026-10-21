@@ -2,20 +2,20 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $userCreate = User::create([
-            'name' => 'Pastian Hulu',
-            'email' => 'admin@gmail.com',
-            'password'  => bcrypt('admin@gmail.com')
-        ]);
+        $user = User::firstOrCreate(
+            ['email' => 'admin@gmail.com'],
+            ['name' => 'Pastian Hulu', 'password' => bcrypt('admin')]
+        );
+
+        $user->syncRoles(['admin']);
+        $user->syncPermissions(Permission::all());
     }
 }

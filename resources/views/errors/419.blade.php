@@ -1,0 +1,5 @@
+@extends('errors.layout')
+@section('title', __('Page Expired'))
+@section('code', '419')
+@section('icon', 'bi-hourglass-split')
+@section('message_title', 'Oops! Sesi Kedaluwarsa')

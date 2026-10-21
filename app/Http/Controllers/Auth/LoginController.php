@@ -15,11 +15,15 @@ class LoginController extends Controller
 
     protected function redirectTo()
     {
-        if (auth()->user()->role === 'admin') {
-            return '/admin/dashboard';
+        if (auth()->user()->hasRole('admin')) {
+            return route('admin.dashboard');
         }
-        
-        return '/member/dashboard';
+
+        if (auth()->user()->hasRole('member')) {
+            return route('member.dashboard');
+        }
+
+        return '/';
     }
 
     public function __construct()
