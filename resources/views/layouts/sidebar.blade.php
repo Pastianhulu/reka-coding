@@ -24,10 +24,16 @@
                 </li>
                 
                 <li class="nav-item {{ setOpen('user') . setOpen('role') . setOpen('permission') }}">
+                   @can('Master Data')
                     <a  class="nav-link"><i class="fa fa-database"></i> <p> Master Data <i class="fas fa-arrow-alt-circle-down right"></i></p> </a>
+                   @endcan
                     <ul class="nav nav-treeview">
-                        <li class="nav-item"> <a href="{{ url('permission') }}" class="nav-link {{ setActive('permission') }}"> <i class="fa fa-circle"></i> <p> Data Kategori </p> </a> </li>
-                        <li class="nav-item"> <a href="{{ url('permission') }}" class="nav-link {{ setActive('permission') }}"> <i class="fa fa-circle"></i> <p> Metode Pembayaran </p> </a> </li>
+                      @can('Master Kategori')
+                        <li class="nav-item"> <a href="{{ url('admin/kategori') }}" class="nav-link {{ setActive('admin/kategori') }}"> <i class="fa fa-circle"></i> <p> Data Kategori </p> </a> </li>
+                      @endcan
+                      @can('Master Cara Bayar')
+                        <li class="nav-item"> <a href="{{ url('admin/cara-bayar') }}" class="nav-link {{ setActive('min/cara-bayar') }}"> <i class="fa fa-circle"></i> <p> Metode Pembayaran </p> </a> </li>
+                      @endcan
                         <li class="nav-item"> <a href="{{ url('permission') }}" class="nav-link {{ setActive('permission') }}"> <i class="fa fa-cog"></i> <p> Data Profil </p> </a> </li>
                     </ul>
                 </li>

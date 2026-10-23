@@ -50,11 +50,14 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::group(['middleware' => 'role:admin', 'prefix' => 'admin'], function () {
             Route::get('/dashboard', 'Dashboard\Dashboard@index')->name('admin.dashboard');
             Route::get('/produk', 'Produk\Produk@index');
-            Route::get('/kategori', 'Master\KategoriController@index');
             Route::get('/blog', 'Blog\Blog@index');
             Route::get('/pesanan', 'Pesanan\Pesanan@index');
             Route::get('/membership', 'Membership\Membership@index');
-
+            //Data Master
+            
+            Route::resource('/kategori', 'Master\KategoriController');
+            Route::resource('/cara-bayar', 'Master\CaraBayarController');
+            
             // MANAJEMEN USER
             Route::resource('/permission',  'User\PermissionController');
             Route::resource('/role',        'User\RoleController');

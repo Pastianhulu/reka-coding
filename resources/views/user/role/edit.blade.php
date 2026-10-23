@@ -1,1 +1,92 @@
-ttt
+@extends('layouts/backend')
+@section('content-header')
+<section class="content-header">
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-sm-6">
+				<H5>Edit Roles</H5>
+			</div>
+			<div class="col-sm-6">
+				<ol class="breadcrumb float-sm-right">
+					<li class="breadcrumb-item"><a href="{{url('admin/dashboard') }}">Home</a></li>
+					<li class="breadcrumb-item active">Role - Edit</li>
+				</ol>
+			</div>
+		</div>
+	</div>
+</section>
+
+
+<div class="content">
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-lg-12">
+
+				<div class="card card-info card-outline">
+					<div class="card-header">
+						<h3 class="card-title">Form Tambah Role</h3>
+					</div>
+
+					<form action="{{ route('role.update', $role->id) }}" method="POST">
+						@csrf
+						@method('PUT')
+						<div class="card-body">
+
+							<div class="form-group">
+								<label>Nama Role</label>
+								<input type="text" name="name" value="{{ old('name', $role->name) }}"
+									placeholder="Masukan Nama Role" class="form-control @error('title') is-invalid @enderror">
+								@error('name')
+								<div class="invalid-feedback" style="display: block">
+									{{ $message }}
+								</div>
+								@enderror
+							</div>
+
+							<div class="form-group">
+								<label class="font-weight-bold">PERMISSIONS</label>
+								<br>
+								@foreach ($permissions as $permission)
+
+								<div class="form-check form-check-inline">
+									<input class="form-check-input" type="checkbox" name="permissions[]"
+										value="{{ $permission->name }}" id="check-{{ $permission->id }}"
+										@if($role->permissions->contains($permission)) checked @endif>
+									<label class="form-check-label" for="check-{{ $permission->id }}">
+										{{ $permission->name }}
+
+									</label>
+
+								</div>
+
+								<!-- TABEL -->
+
+								<!-- END TABEL -->
+
+
+								@endforeach
+							</div>
+
+
+						</div>
+						<!-- /.card-body -->
+
+						<div class="card-footer">
+							<button type="submit" onclick="MatikanForm(this);" class="btn btn-success fa fa-save">
+								Ubah</button>
+							<a href="{{ url('admin/role') }}" class="btn btn-default float-right">
+								<i class="fas fa-undo-alt"> </i>
+								Kembali
+							</a>
+							<!--  -->
+						</div>
+
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+@stop
