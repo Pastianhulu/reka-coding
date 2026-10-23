@@ -1,52 +1,43 @@
 # AGENTS.md — rekac-dev (Laravel 11)
 
 ## Commands
+- `php artisan serve` — dev server; `npm run dev` / `npm run build` — Vite (scaffolded but unused by current Blade pages, see Assets).
+- `php artisan test` — PHPUnit 10 (Unit + Feature). Single test: `php artisan test --filter=ExampleTest`.
+- `vendor/bin/pint` — formatter; default Laravel preset, no `pint.json`.
+- `php artisan migrate` — normal migration path. **Do not run `migrate:fresh`** (see Database).
+- `/rekac` (public route) and `php artisan optimize:clear` clear config/cache/view/route. `/rekac` calls `optimize:clear` last, so config is not left cached.
 
-**Frontend**
-- `npm run dev` — Vite dev server
-- `npm run build` — production build
+## Database
+- Active DB is MySQL `dbrekac_dev`. `config/database.php` hardcodes the mysql connection (host `127.0.0.1`, port `3306`, database `dbrekac_dev`, user `root`, empty password), so `DB_HOST` / `DB_DATABASE` / `DB_USERNAME` / `DB_PASSWORD` in `.env` do not apply. `database/database.sqlite` exists but is unused.
+- `phpunit.xml` leaves DB env commented out and the mysql config is hardcoded, so tests run against the real `dbrekac_dev` DB. Do **not** add `RefreshDatabase` / `DatabaseMigrations` without switching to a separate DB — it would wipe dev data.
+- Migrations are behind the live schema: live `log_activity` has `subject/deskripsi/url/method`, but `2026_10_21_005319_create_log_activity_table.php` creates `activity`. `migrate:fresh` will not reproduce the running DB.
+- No master (`m_*`) tables/migrations exist; `App\Models\Master\Kategori` points at a missing `m_kategori` table. Do not create master tables unless asked.
 
-**Backend**
-- `php artisan serve` — dev server
-- `php artisan migrate` — run migrations
-- `php artisan migrate:fresh --seed` — reset DB + seed
-- `php artisan test` — PHPUnit (Unit + Feature suites)
-- `vendor/bin/pint` — format code (Laravel Pint, default Laravel preset; no `pint.json`)
+## Routing / controllers
+- `routes/web.php` is Laravel-7 style: everything is inside `Route::group(['namespace' => 'App\Http\Controllers'], ...)`, which is why string controllers (`'Dashboard\Dashboard@index'`) resolve.
+- Public pages are inline closures for `resources/views/public/*`; there is no controller for them.
+- Admin routes require `auth` + `role:admin`; member routes require `role:member`. The `role` / `permission` middleware aliases are registered in `bootstrap/app.php`; `permission:*` guards live in controller constructors.
+- There is no `Admin` namespace/folder. Controller naming is inconsistent:
+  - Module style (class = module, no `Controller` suffix): `Dashboard\Dashboard`, `Produk\Produk`, `Blog\Blog`, `Pesanan\Pesanan`, `Membership\Membership`.
+  - Suffix style: `User\{Permission,Role,User}Controller` (resource routes under `/admin`), `Member\DashboardController`, `Master\<Entity>Controller`.
+  - `Role\Role` and `HakAkses\HakAkses` are unrouted legacy stubs.
+- `Auth::routes()` provides auth; `HomeController` and `LoginController::redirectTo()` send admins to `admin.dashboard`, members to `member.dashboard`.
+- Spatie permissions are named `Master User`, `Master Permission`, `Master Role` (plus a `jenis` column). Add new permissions to `PermissionSeeder`, guard with `permission:<name>`, and gate sidebar items with `@can`. Seeders create roles `admin` / `member` and login `admin@gmail.com` / `admin`.
 
-**Cache**
-- `/rekac` (web route) — clears config/cache/view/route + re-runs `config:cache`. Primary way to reset caches in this app.
-- `php artisan optimize:clear` — same effect from CLI
-
-## Stack
-
-- Laravel 11, PHP 8.2+, SQLite (`database/database.sqlite`)
-- Frontend: Vite + laravel-vite-plugin, **Bootstrap 5 + Sass**. Vite inputs are `resources/sass/app.scss` and `resources/js/app.js` (note: SCSS, not CSS).
-- Auth scaffolding from `laravel/ui` (`Auth::routes()`, `HomeController`), plus `spatie/laravel-permission` (permission tables migration is dated `2026_10_19`).
-- `laravel/tinker` available.
-
-## Routing / App shape
-
-- `routes/web.php` is **Laravel 7 style**: everything is wrapped in `Route::group(['namespace' => 'App\Http\Controllers'], ...)` so string controllers (`'Dashboard\Dashboard@index'`) resolve — Laravel 11 has no default controller namespace.
-- Public site pages render Blade views under `resources/views/public/*` (home, produk, blog, layanan, faq, contact, produk-detail) via inline closures — no controllers for these.
-- Auth routes from `Auth::routes()`; `/home` -> `HomeController@index`.
-- Route names are only set where actually used (`admin.dashboard`, `member.dashboard`); `Auth::routes()` registers login/logout/register/password.* names.
-- Controllers: **no `Admin` namespace/folder**. Admin-side modules use one folder per module, class name = module name (no `Controller` suffix): `Dashboard\Dashboard`, `Produk\Produk`, `Blog\Blog`, `Pesanan\Pesanan`, `Membership\Membership`, `User\User`, `Role\Role`, `HakAkses\HakAkses`. Master data: top-level `Master\<Entity>Controller`. Member area: `Member\*` (keeps `Controller` suffix).
-- `public/backend/**` holds vendored admin-template assets (plugins like daterangepicker, mapael). Do not treat as source to build.
-
-## Conventions — master data
-
-- Controllers: `App\Http\Controllers\Master\<Entity>Controller`; views: `resources/views/admin/master/<entity>/index.blade.php`.
-- Models: `App\Models\Master\<Entity>` with `protected $table = 'm_<entity>'` (e.g. `m_kategori`). Master CRUD uses Eloquent models; produk/others often use query builder.
-- **No master migrations/tables yet** — do not create DB tables until explicitly asked.
+## Views / assets
+- Admin layout `layouts/backend` uses AdminLTE 3 + jQuery + toastr + SweetAlert2 from `public/backend`; public layout `layouts/public` uses `public/publik`. `public/backend` is vendored; do not treat `public/backend/build` as app source.
+- Vite inputs are `resources/sass/app.scss` (SCSS) and `resources/js/app.js`, but no Blade uses `@vite`; `npm run build` does not affect current pages.
+- `yoeunes/toastr` is wired in `layouts/backend` via `@toastr_js` / `@toastr_render`; controllers use `toastr()->success(...)`. SweetAlert2 is vendored at `public/backend/sweetalert2.min.js`.
+- Only `user/permissions/*` and `user/user/*` CRUD views exist. `user/role`, `user/password`, `user/profil`, `resources/views/admin/`, and `public/faq.blade.php` are missing. `Master\KategoriController` expects `admin.master.kategori.index`; non-dashboard module controllers (`Produk`, `Blog`, `Pesanan`, `Membership`) return a missing `admin.placeholder`. Auth password/confirm/verify views extend a missing `layouts.app`. Expect missing-view errors on these scaffolded routes.
+- For new master views, use `resources/views/admin/master/<entity>/index.blade.php` (controller path), not the empty `resources/views/master/`.
+- Global `setActive()` / `setOpen()` helpers are in `app/Helpers/helper.php`, autoloaded via composer `files`.
 
 ## Testing
-
-- `phpunit.xml` defines Unit + Feature suites; base class `tests/TestCase.php`.
-- Default test env uses `CACHE_STORE=array`, `QUEUE_CONNECTION=sync`, `SESSION_DRIVER=array`, `MAIL_MAILER=array`.
-- SQLite `:memory:` for DB is **commented out** in `phpunit.xml`; tests run against the real SQLite file unless you uncomment/fix those lines.
+- `APP_URL` must include a scheme. In this workspace `.env` has `APP_URL=localhost`, so `php artisan test` requests `/localhost` and the Feature example 404s. Setting `APP_URL=http://localhost` makes both example tests pass.
+- `phpunit.xml`: `CACHE_STORE=array`, `QUEUE_CONNECTION=sync`, `SESSION_DRIVER=array`, `MAIL_MAILER=array`; PHPUnit 10, no Pest.
 
 ## Gotchas
-
-- Vite input is `resources/sass/app.scss` — an agent assuming `resources/css/app.css` will be wrong.
-- `APP_KEY` already set in `.env`; no `key:generate` needed.
-- `.env.example` uses `database` drivers for session/cache/queue (tables exist via migrations), not file/redis.
+- Controllers call `\LogActivity::addToLog(...)`, but no global `LogActivity` alias is registered (`class_exists('LogActivity')` is false outside Tinker) — those calls fail. Use `App\Helpers\LogActivity::addToLog()`.
+- Three activity-log implementations exist: `App\Helpers\LogActivity` (writes live columns), `App\Services\LogActivity` (writes an `activity` column absent from the live DB), and `App\Models\LogActivity`.
+- `App\Http\Controllers\Controller` extends `Illuminate\Routing\Controller` only; `$this->validate(...)` used by `User\*` controllers is not available in Laravel 11. Use `$request->validate()`.
+- `APP_KEY` is already set in `.env`; do not run `key:generate`.

@@ -15,6 +15,8 @@
   <link rel="stylesheet" href="{{ url('backend/plugins/overlayScrollbars/css/OverlayScrollbars.min.css') }}">
   <link rel="stylesheet" href="{{ url('backend/plugins/daterangepicker/daterangepicker.css') }}">
   <link rel="stylesheet" href="{{ url('backend/plugins/toastr/toastr.min.css') }}">
+
+  
 </head>
 <style>
     body {
@@ -68,18 +70,17 @@
 </div>
 <script src="{{ url('backend/plugins/jquery/jquery.min.js') }}"></script>
 <script src="{{ url('backend/plugins/jquery-ui/jquery-ui.min.js') }}"></script>
-<script>
-  $.widget.bridge('uibutton', $.ui.button)
-</script>
 <script src="{{ url('backend/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-<script src="{{ url('backend/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') }}"></script>
-<script src="{{ url('backend/plugins/summernote/summernote-bs4.min.js') }}"></script>
-<script src="{{ url('backend/plugins/toastr/toastr.min.js') }}"></script>
-<script src="{{ url('backend/plugins/sweetalert.min.js') }}"></script>
 <script src="{{ url('backend/plugins/moment/moment.min.js') }}"></script>
-<script src="{{ url('backend/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') }}"></script>
 <script src="{{ url('backend/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
+<script src="{{ url('backend/sweetalert2.min.js') }}"></script> 
+<script src="{{ url('backend/plugins/toastr.min.js') }}"></script> 
 <script src="{{ url('backend/dist/js/adminlte.js') }}"></script>
+
+@toastr_render
+@toastr_js
+@stack('scripts')
+
 
 </body>
 </html>

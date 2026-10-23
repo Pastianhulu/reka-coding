@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Artisan;
 
 Route::group(['namespace' => 'App\Http\Controllers'], function () {
     // Class Publik
@@ -11,7 +13,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         return view('public.produk');
     });
     Route::get('/blog', function () {
-        return view('public.blog');
+        return view('public.blog'); 
     });
     Route::get('/layanan', function () {
         return view('public.layanan');

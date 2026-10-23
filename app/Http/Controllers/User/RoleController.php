@@ -9,105 +9,75 @@ use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
-  
     public function __construct()
     {
         $this->middleware(['permission:Master Role']);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $roles = Role::latest()->when(request()->q, function($roles) {
-            $roles = $roles->where('name', 'like', '%'. request()->q . '%');
+        $roles = Role::latest()->when($request->q, function ($query, $cari) {
+            return $query->where('name', 'like', '%' . $cari . '%');
         })->paginate(100);
 
         return view('user.role.index', compact('roles'));
     }
 
-    
     public function create()
     {
+
         $permissions = Permission::latest()->get();
-        // foreach($permissions->groupBy('jenis') as $jenis => $hak_akses) {
-        //     $data['jenis'] = $jenis;
-        //     $data['akses'] = $hak_akses->pluck('name')->all();
-        //     $result[] = $data;
-        // }
-        // dd(json_encode($result));
-
-        // return $hak_akses;
-        
-
-
         return view('user.role.create', compact('permissions'));
+
     }
 
-   
     public function store(Request $request)
     {
-        $this->validate($request, [
-            'name' => 'required|unique:roles'
+        $request->validate([
+            'name' => 'required|unique:roles,name',
         ]);
 
         $role = Role::create([
-            'name' => $request->input('name')
+            'name' => $request->input('name'),
         ]);
 
-        //assign permission to role
-        $role->syncPermissions($request->input('permissions'));
+        $role->syncPermissions($request->input('permissions', []));
+        toastr()->success('Data Berhasil Disimpan!', ['timeOut' => 5000]);
 
-        if($role){
-            return redirect()->route('role.index')->with(['success' => 'Data Berhasil Disimpan!']);
-        }else{
-            return redirect()->route('role.index')->with(['error' => 'Data Gagal Disimpan!']);
-        }
+        return redirect()->route('role.index');
     }
 
     public function edit(Role $role)
     {
         $permissions = Permission::latest()->get();
+
         return view('user.role.edit', compact('role', 'permissions'));
     }
 
-    
+
+
     public function update(Request $request, Role $role)
     {
-        $this->validate($request, [
-            'name' => 'required|unique:roles,name,'.$role->id
+        $request->validate([
+            'name' => 'required|unique:roles,name,' . $role->id,
         ]);
-        
-        $role = Role::findOrFail($role->id);
+
         $role->update([
-            'name' => $request->input('name')
+            'name' => $request->input('name'),
         ]);
 
-        //assign permission to role
-        $role->syncPermissions($request->input('permissions'));
+        $role->syncPermissions($request->input('permissions', []));
 
-        if($role){
-            //redirect dengan pesan sukses
-            return redirect()->route('role.index')->with(['success' => 'Data Berhasil Diupdate!']);
-        }else{
-            //redirect dengan pesan error
-            return redirect()->route('role.index')->with(['error' => 'Data Gagal Diupdate!']);
-        }
+        toastr()->success('Data Berhasil Diupdate!', ['timeOut' => 5000]);
+
+        return redirect()->route('role.index');
     }
 
-    public function destroy($id)
+    public function destroy(Role $role)
     {
-        $role = Role::findOrFail($id);
-        $permissions = $role->permissions;
-        $role->revokePermissionTo($permissions);
+        $role->syncPermissions([]);
         $role->delete();
 
-        if($role){
-            return response()->json([
-                'status' => 'success'
-            ]);
-        }else{
-            return response()->json([
-                'status' => 'error'
-            ]);
-        }
+        return response()->json(['status' => 'success']);
     }
 }

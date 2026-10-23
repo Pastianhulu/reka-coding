@@ -49,7 +49,7 @@
         <a href="#" class="dropdown-item">
           <!-- Message Start -->
           <div class="media">
-            <img src="{{ url('gambar/logo-icon.png') }}" alt="Profil" class="img-size-50 mr-3 img-circle">
+            <img src="{{ url('gambar/logo/logo-bg.jpg') }}" alt="Profil" class="img-size-50 mr-3 img-circle">
             <div class="media-body">
               <h3 class="dropdown-item-title">
                 Profil
@@ -65,7 +65,7 @@
         <a href="#" class="dropdown-item">
           <!-- Message Start -->
           <div class="media">
-            <img src="{{ url('gambar/logo-icon.png') }}" alt="User Avatar" class="img-size-50 img-circle mr-3">
+            <img src="{{ url('gambar/logo/logo-bg.jpg') }}" alt="User Avatar" class="img-size-50 img-circle mr-3">
             <div class="media-body">
               <h3 class="dropdown-item-title">
                 John Pierce
@@ -81,7 +81,7 @@
         <a href="#" class="dropdown-item">
           <!-- Message Start -->
           <div class="media">
-            <img src="{{ url('gambar/logo-icon.png') }}" alt="User Avatar" class="img-size-50 img-circle mr-3">
+            <img src="{{ url('gambar/logo/logo-bg.jpg') }}" alt="User Avatar" class="img-size-50 img-circle mr-3">
             <div class="media-body">
               <h3 class="dropdown-item-title">
                 Nora Silvester

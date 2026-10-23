@@ -10,7 +10,7 @@
                 <img src="{{ url('gambar/logo/logo.jpg') }}" class="img-circle elevation-1" alt="User Image">
             </div>
             <div class="info">
-                <a href="#" class="d-block">{{ Auth::user()->name }}</a>
+                <a href="#" class="d-block">{{ Auth()->user()->name }}</a>
             </div>
         </div>
 
@@ -34,9 +34,9 @@
 
                 
                 <li class="nav-item {{ setOpen('user') . setOpen('role') . setOpen('permission') }}">
-                    {{-- @can('Navigasi User') --}}
+                    @can('Navigasi User')
                         <a  class="nav-link"><i class="fa fa-cog"></i> <p> Manajemen User <i class="fas fa-arrow-alt-circle-down right"></i></p> </a>
-                    {{-- @endcan --}}
+                    @endcan
                     <ul class="nav nav-treeview">
                         @can('Master Permission')
                         <li class="nav-item"> <a href="{{ url('admin/permission') }}" class="nav-link {{ setActive('admin/permission') }}"> <i class="fa fa-universal-access"></i> <p> Data Permission </p> </a> </li>

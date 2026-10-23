@@ -1,11 +1,11 @@
-@extends('layouts/backend')
+@extends('layouts.backend')
 @section('content-header')
 
 <section class="content-header">
   <div class="container-fluid">
     <div class="row">
       <div class="col-sm-6">
-        <h5>Daftar Permissions</h5>
+        <h4>Daftar Permissions</h4>
       </div>
       <div class="col-sm-6">
         <ol class="breadcrumb float-sm-right">
@@ -23,7 +23,6 @@
       <div class="col-lg-12">
         <div class="card">
           <div class="card-header">
-
             <a href="{{ url('admin/permission/create') }}" class="btn btn-success "> 
               <i class="fas fa-plus-circle"> </i>Tambah </a>
             <div class="card-tools">
@@ -56,10 +55,10 @@
                   <td>{{ $permission->jenis }}</td>
                   <td class="text-right">
                     <a href="{{ route('permission.edit', $permission->id) }}" class="btn btn-sm btn-info">
-                      <i class="fa fa-edit"> </i>
+                      <i class="fa fa-edit"> </i> Edit
                     </a>
-                    <button onClick="Delete(this.id)" class="btn btn-sm btn-danger" id="{{ $permission->id }}">
-                      <i class="fa fa-cut"></i>
+                      <button class="btn btn-sm btn-danger" onclick="hapusPermission({{ $permission->id }})">
+                        <i class="fa fa-cut"></i> Hapus
                     </button>
                   </td>
                 </tr>
@@ -67,7 +66,6 @@
               </tbody>
             </table>
           </div>
-
           <ul class="pagination pagination-month justify-content-center">
             {{ $permissions->links() }}
           </ul>
@@ -76,65 +74,37 @@
     </div>
   </div>
 </div>
+@endsection
 
+@push('scripts')
 <script>
-  function Delete(id) {
-    var id = id;
-    var token = $("meta[name='csrf-token']").attr("content");
+function hapusPermission(id) {
+    Swal.fire({
+        title: 'Yakin hapus?',
+        text: 'Permission ini akan dihapus',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, hapus',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#dc3545',
+    }).then((result) => {
+        if (!result.isConfirmed) return;
 
-    swal({
-      title: "Aplakah Kamu Yakin",
-      text: "Data ini di Hapus",
-      icon: "warning",
-      buttons: [
-        'Tidak',
-        'Ya Setuju'
-      ],
-      dangerMode: true,
-
-    }).then(function (isConfirm) {
-      if (isConfirm) {
-        jQuery.ajax({
-          url: "{{ route("permission.index") }}/"+id,
-          data: {
-            "id": id,
-            "_token": token
-          },
-          type: 'DELETE',
-          success: function (response) {
-            if (response.status == "success") {
-              swal({
-                title: 'Sukses',
-                text: 'Berhasil di Hapus',
-                icon: 'success',
-                timer: 1000,
-                showConfirmButton: false,
-                showCancelButton: false,
-                buttons: false,
-              }).then(function () {
-                location.reload();
-              });
-            } else {
-              swal({
-                title: 'Gagal..!',
-                text: 'Data Anda Gagal di Hapus',
-                icon: 'error',
-                timer: 1000,
-                showConfirmButton: false,
-                showCancelButton: false,
-                buttons: false,
-              }).then(function () {
-                location.reload();
-              });
+        $.ajax({
+            url: "{{ url('admin/permission') }}/" + id,
+            type: 'DELETE',
+            data: { _token: "{{ csrf_token() }}" },
+            success: function (res) {
+                if (res.status === 'success') {
+                     toastr.success('Data sudah dihapus', 'Berhasil');
+                    setTimeout(function(){ location.reload(); }, 1000);
+                }
+            },
+            error: function () {
+                Swal.fire('Gagal', 'Data tidak bisa dihapus', 'error');
             }
-          }
         });
-
-      } else {
-        return true;
-      }
-    })
-  }
+    });
+}
 </script>
-
-@stop
+@endpush

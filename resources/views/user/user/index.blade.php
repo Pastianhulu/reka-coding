@@ -24,7 +24,7 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-header">
-                            <a href="{{ url('user/create') }}" class="btn btn-success "> <i class="fas fa-plus-circle"> </i>
+                            <a href="{{ url('admin/user/create') }}" class="btn btn-success "> <i class="fas fa-plus-circle"> </i>
                                 Tambah </a>
                             <div class="card-tools">
                                 <form action="{{ url('user') }}" method="GET">
@@ -59,7 +59,7 @@
                                             <td>
                                                 @if (!empty($user->getRoleNames()))
                                                     @foreach ($user->getRoleNames() as $role)
-                                                        <label class="badge badge-info">{{ $role }}</label>
+                                                        <label class="badge badge-success">{{ $role }}</label>
                                                     @endforeach
                                                 @endif
                                             </td>
@@ -67,8 +67,8 @@
                                                 <a href="{{ route('user.edit', $user->id) }}" class="btn btn-sm btn-primary">
                                                     <i class="fa fa-pencil-alt"> Edit</i>
                                                 </a>
-                                                <button onClick="Delete(this.id)" class="btn btn-sm btn-warning" id="{{ $user->id }}">
-                                                    <i class="fa fa-trash"> Hapus</i>
+                                                 <button class="btn btn-sm btn-danger" onclick="Delete({{ $user->id }})">
+                                                    <i class="fa fa-cut"></i> Hapus
                                                 </button>
                                             </td>
                                         </tr>
@@ -85,68 +85,36 @@
         </div>
     </div>
 
-    <!--action delete -->
 
-    <script>
-        //ajax delete
-        function Delete(id) {
-            var id = id;
-            var token = $("meta[name='csrf-token']").attr("content");
 
-            swal({
-                title: "APAKAH KAMU YAKIN ?",
-                text: "INGIN MENGHAPUS DATA INI!",
-                icon: "warning",
-                buttons: [
-                    'TIDAK',
-                    'YA'
-                ],
-                dangerMode: true,
-            }).then(function(isConfirm) {
-                if (isConfirm) {
+<script>
+function Delete(id) {
+    Swal.fire({
+        title: 'Yakin hapus?',
+        text: 'User ini akan dihapus',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, hapus',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#dc3545',
+    }).then((result) => {
+        if (!result.isConfirmed) return;
 
-                    //ajax delete
-                    jQuery.ajax({
-                        url: "{{ route('user.index') }}/" + id,
-                        data: {
-                            "id": id,
-                            "_token": token
-                        },
-                        type: 'DELETE',
-                        success: function(response) {
-                            if (response.status == "success") {
-                                swal({
-                                    title: 'BERHASIL!',
-                                    text: 'DATA BERHASIL DIHAPUS!',
-                                    icon: 'success',
-                                    timer: 1000,
-                                    showConfirmButton: false,
-                                    showCancelButton: false,
-                                    buttons: false,
-                                }).then(function() {
-                                    location.reload();
-                                });
-                            } else {
-                                swal({
-                                    title: 'GAGAL!',
-                                    text: 'DATA GAGAL DIHAPUS!',
-                                    icon: 'error',
-                                    timer: 1000,
-                                    showConfirmButton: false,
-                                    showCancelButton: false,
-                                    buttons: false,
-                                }).then(function() {
-                                    location.reload();
-                                });
-                            }
-                        }
-                    });
-
-                } else {
-                    return true;
+        $.ajax({
+            url: "{{ url('admin/user') }}/" + id,
+            type: 'DELETE',
+            data: { _token: "{{ csrf_token() }}" },
+            success: function (res) {
+                if (res.status === 'success') {
+                     toastr.success('Data sudah dihapus', 'Berhasil');
+                    setTimeout(function(){ location.reload(); }, 1000);
                 }
-            })
-        }
-    </script>
-
+            },
+            error: function () {
+                Swal.fire('Gagal', 'Data tidak bisa dihapus', 'error');
+            }
+        });
+    });
+}
+</script>
 @stop
