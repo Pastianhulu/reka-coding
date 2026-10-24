@@ -36,29 +36,27 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         $run = Artisan::call('config:cache');
         $run = Artisan::call('route:clear');
         $run = Artisan::call('optimize:clear');
-
         return 'Halaman Berhasil di optimize';
     });
 
     Route::get('/logout', 'Auth\LoginController@logout');
-
     Auth::routes();
 
     Route::group(['middleware' => 'auth'], function () {
         Route::get('/home', 'HomeController@index');
-        // Admin
         Route::group(['middleware' => 'role:admin', 'prefix' => 'admin'], function () {
             Route::get('/dashboard', 'Dashboard\Dashboard@index')->name('admin.dashboard');
             Route::get('/produk', 'Produk\Produk@index');
             Route::get('/blog', 'Blog\Blog@index');
             Route::get('/pesanan', 'Pesanan\Pesanan@index');
             Route::get('/membership', 'Membership\Membership@index');
-            //Data Master
             
+            //Data Master
             Route::resource('/kategori', 'Master\KategoriController');
             Route::resource('/cara-bayar', 'Master\CaraBayarController');
+            Route::resource('/profil',   'Master\ProfilController');
             
-            // MANAJEMEN USER
+            // Manajemen user 
             Route::resource('/permission',  'User\PermissionController');
             Route::resource('/role',        'User\RoleController');
             Route::resource('/user',        'User\UserController');

@@ -29,7 +29,7 @@
 
             <a href="{{ url('/') }}" class="logo d-flex align-items-center me-auto">
                 <img src="{{ url('gambar/logo/logo.jpg') }}" alt="REKA CODING" style="height: 80px; width: auto;">
-                <h3 class="sitename mb-0 ml-2">REKAC</h3>
+                <h4 class="sitename mb-0 ml-2 text-uppercase">{{ $profil->website }}</h4>
             </a>
 
             <nav id="navmenu" class="navmenu">

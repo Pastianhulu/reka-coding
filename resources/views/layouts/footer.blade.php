@@ -4,7 +4,7 @@
 
             <div class="col-lg-4 col-md-6 footer-about">
                 <a href="{{ url('/') }}" class="d-flex align-items-center mb-3">
-                    <span class="sitename">REKA CODING</span>
+                    <span class="sitename">{{ $profil->website }}</span>
                 </a>
                 <div class="footer-contact">
                     <p>Jl. Teknologi Digital No. 123</p>
@@ -36,7 +36,7 @@
 
             <div class="col-lg-4 col-md-12">
                 <h4>Ikuti Kami</h4>
-                <p>Dapatkan update terbaru seputar source code, tutorial, dan layanan digital dari REKA CODING.</p>
+                <p>Dapatkan update terbaru seputar source code, tutorial, dan layanan digital dari {{ $profil->website }}.</p>
                 <div class="social-links d-flex">
                     <a href="" target="_blank"><i class="bi bi-twitter-x"></i></a>
                     <a href="" target="_blank"><i class="bi bi-facebook"></i></a>
@@ -49,6 +49,6 @@
     </div>
 
     <div class="container copyright text-center">
-        <p>© <span>Copyright</span> <strong class="px-1 sitename">REKA CODING</strong> <span>All Rights Reserved</span></p>
+        <p>© <span>Copyright</span> <strong class="px-1 sitename">{{ $profil->website }}</strong> <span>All Rights Reserved</span></p>
     </div>
 </footer>

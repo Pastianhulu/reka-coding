@@ -34,7 +34,9 @@
                       @can('Master Cara Bayar')
                         <li class="nav-item"> <a href="{{ url('admin/cara-bayar') }}" class="nav-link {{ setActive('min/cara-bayar') }}"> <i class="fa fa-circle"></i> <p> Metode Pembayaran </p> </a> </li>
                       @endcan
-                        <li class="nav-item"> <a href="{{ url('permission') }}" class="nav-link {{ setActive('permission') }}"> <i class="fa fa-cog"></i> <p> Data Profil </p> </a> </li>
+                      @can('Master Profil')
+                        <li class="nav-item"> <a href="{{ url('admin/profil') }}" class="nav-link {{ setActive('admin/Profil') }}"> <i class="fa fa-cog"></i> <p> Data Profil </p> </a> </li>
+                    @endcan
                     </ul>
                 </li>
 

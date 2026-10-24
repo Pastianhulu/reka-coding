@@ -56,9 +56,7 @@
 		@include('layouts.sidebar')
 
 		<div class="content-wrapper">
-			<div class="content-header">
-				@yield('content-header')
-			</div>
+			@yield('content-header')
 		</div>
 
 		<footer class="main-footer">
@@ -126,9 +124,14 @@
 		}
 	</script>
 
+	<script>
+		function KunciTombol(btn) {
+			btn.disabled = true;
+			btn.form.submit();
+		}
+	</script>
 
-	@toastr_render
-	@toastr_js
+
 	@stack('scripts')
 
 </body>
