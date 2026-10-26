@@ -82,6 +82,14 @@
                 <textarea name="alamat" class="form-control" rows="3" placeholder="Masukkan alamat lengkap">{{ old('alamat', $profil->alamat) }}</textarea>
               </div>
 
+              <div class="form-group">
+                <label>Harga Membership (Rp)</label>
+                <input type="number" name="harga_membership" value="{{ old('harga_membership', $profil->harga_membership) }}" min="0" placeholder="Contoh: 100000" class="form-control @error('harga_membership') is-invalid @enderror">
+                @error('harga_membership')
+                <div class="invalid-feedback" style="display: block">{{ $message }}</div>
+                @enderror
+              </div>
+
               <div class="alert alert-secondary mt-4">
                 <i class="fas fa-share-alt"></i> Media Sosial
               </div>

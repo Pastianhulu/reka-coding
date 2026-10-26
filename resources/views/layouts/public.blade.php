@@ -43,8 +43,13 @@
                 <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
             </nav>
 
-            <a class="btn-getstarted" href="{{ route('login') }}">Login</a>
-            <a class="btn-getstarted ms-1" href="{{ route('register') }}">Daftar</a>
+            @auth
+                <a class="btn-getstarted" href="{{ route('home') }}">Dashboard</a>
+                <a class="btn-getstarted ms-1" href="{{ route('logout') }}">Logout</a>
+            @else
+                <a class="btn-getstarted" href="{{ route('login') }}">Login</a>
+                <a class="btn-getstarted ms-1" href="{{ route('register') }}">Daftar</a>
+            @endauth
 
         </div>
     </header>

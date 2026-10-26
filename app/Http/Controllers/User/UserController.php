@@ -78,7 +78,8 @@ class UserController extends Controller
     {
         $request->validate([
             'name'  => 'required',
-            'email' => 'required|unique:users,email,' . $user->id
+            'email' => 'required|unique:users,email,' . $user->id,
+            'membership_until' => 'nullable|date',
         ]);
 
         try {
@@ -88,12 +89,14 @@ class UserController extends Controller
                 $user->update([
                     'name'  => $request->input('name'),
                     'email' => $request->input('email'),
+                    'membership_until' => $request->input('membership_until') ?: null,
                 ]);
             } else {
                 $user->update([
                     'name'     => $request->input('name'),
                     'email'    => $request->input('email'),
-                    'password' => bcrypt($request->input('password'))
+                    'password' => bcrypt($request->input('password')),
+                    'membership_until' => $request->input('membership_until') ?: null,
                 ]);
             }
 

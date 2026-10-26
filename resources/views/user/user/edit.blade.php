@@ -53,6 +53,30 @@
                                 </div>
                             </div>
 
+                            @if ($user->hasRole('member'))
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Membership Aktif Sampai</label>
+                                            <div class="input-group">
+                                                <input type="datetime-local" name="membership_until" id="membership_until"
+                                                    value="{{ old('membership_until', optional($user->membership_until)->format('Y-m-d\TH:i')) }}"
+                                                    class="form-control @error('membership_until') is-invalid @enderror">
+                                                <div class="input-group-append">
+                                                    <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('membership_until').value = '{{ ($user->membership_until && $user->membership_until->isFuture() ? $user->membership_until->copy() : now())->addDays(30)->format('Y-m-d\TH:i') }}'">
+                                                        +30 Hari
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">Kosongkan jika belum aktif. Tombol +30 Hari dihitung dari tanggal berakhir lama.</small>
+                                            @error('membership_until')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
                             <!-- Baris 2: Password -->
                             <div class="row">
                                 <div class="col-md-6">

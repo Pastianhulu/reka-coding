@@ -16,7 +16,7 @@
 	<link rel="stylesheet" href="{{ url('backend/plugins/overlayScrollbars/css/OverlayScrollbars.min.css') }}">
 	<link rel="stylesheet" href="{{ url('backend/plugins/daterangepicker/daterangepicker.css') }}">
 	<link rel="stylesheet" href="{{ url('backend/plugins/toastr/toastr.min.css') }}">
-
+	<link rel="stylesheet" href="{{ url('backend/plugins/summernote/summernote-bs4.css') }}">
 
 </head>
 <style>
@@ -60,7 +60,7 @@
 		</div>
 
 		<footer class="main-footer">
-			<strong>Copyright &copy; {{ date('Y') }} <a href="{{ url('dashboard') }}">REKA CODING</a>.</strong>
+			<strong>Copyright &copy; {{ date('Y') }} <a href="{{ url('admin/dashboard') }}">REKA CODING</a>.</strong>
 			All rights reserved.
 			<div class="float-right d-none d-sm-inline-block">
 				<b>Version</b> 1.0.0
@@ -75,7 +75,14 @@
 	<script src="{{ url('backend/sweetalert2.min.js') }}"></script>
 	<script src="{{ url('backend/plugins/moment/moment.min.js') }}"></script>
 	<script src="{{ url('backend/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
-
+	<script src="{{ url('backend/plugins/summernote/summernote-bs4.min.js') }}"></script>
+	<script src="{{ url('backend/plugins/summernote/summernote-bs4.min.js') }}"></script>
+	<script>
+		$(function () {
+			// Summernote
+			$('.textarea').summernote()
+		})
+	</script>
 
 	<!-- FUNGSI GLOBAL HAPUS DATA  -->
 

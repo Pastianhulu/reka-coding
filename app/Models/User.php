@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'membership_until',
     ];
 
     /**
@@ -42,7 +43,27 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'membership_until' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function scopeAdmin($query)
+    {
+        return $query->role(['admin'])->where('id', '!=', 1);
+    }
+
+    public function scopeMember($query)
+    {
+        return $query->role(['member']);
+    }
+
+    protected static function booted(): void
+    {
+        static::created(function ($user) {
+            if (! $user->hasAnyRole(['admin', 'member'])) {
+                $user->assignRole('member');
+            }
+        });
     }
 }

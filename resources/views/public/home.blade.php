@@ -9,7 +9,7 @@
                     <h1>Source Code untuk Belajar & Produksi</h1>
                     <p>Download, baca, modifikasi. Versi dasar terbuka, versi lengkap untuk produksi.</p>
                     <div class="d-flex">
-                        <a href="#portfolio" class="btn-get-started">Lihat Source Code</a>
+                        <a href="{{ url('produk') }}" class="btn-get-started">Lihat Source Code</a>
                         <a href="https://www.youtube.com/watch?v=Y7f98aduVJ8" class="glightbox btn-watch-video d-flex align-items-center"><i class="bi bi-play-circle"></i><span>Watch Video</span></a>
                     </div>
                 </div>

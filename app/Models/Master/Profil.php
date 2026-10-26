@@ -14,6 +14,7 @@ class Profil extends Model
         'email',
         'whatsapp',
         'alamat',
+        'harga_membership',
         'instagram',
         'youtube',
         'tiktok',

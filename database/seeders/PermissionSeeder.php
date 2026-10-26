@@ -10,9 +10,10 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
-            'Master User'      => 'User',
+            'Master User'       => 'User',
             'Master Permission' => 'Permission',
             'Master Role'       => 'Role',
+            'Master Produk'     => 'Produk',
         ];
 
         foreach ($permissions as $name => $jenis) {
