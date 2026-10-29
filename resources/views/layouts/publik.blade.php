@@ -44,7 +44,7 @@
             </nav>
 
             @auth
-                <a class="btn-getstarted" href="{{ route('home') }}">Dashboard</a>
+                <a class="btn-getstarted" href="{{ url('publik/home') }}">Dashboard</a>
                 <a class="btn-getstarted ms-1" href="{{ route('logout') }}">Logout</a>
             @else
                 <a class="btn-getstarted" href="{{ route('login') }}">Login</a>

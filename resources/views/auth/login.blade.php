@@ -1,4 +1,4 @@
-@extends('layouts.public')
+@extends('layouts.publik')
 @section('body-class', 'blog-page')
 @section('content-header')
 @section('header-class', 'sticky-top')

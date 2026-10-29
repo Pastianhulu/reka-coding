@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Public;
+namespace App\Http\Controllers\Publik;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,7 +32,7 @@ class ProdukController extends Controller
         $produks = $query->orderByDesc('tbl_produk.id')->paginate(9)->withQueryString();
         $kategoris = DB::table('m_kategori')->orderBy('name')->get();
 
-        return view('public.produk', compact('produks', 'kategoris'));
+        return view('publik.produk', compact('produks', 'kategoris'));
     }
 
     public function show($slug)
@@ -62,6 +62,6 @@ class ProdukController extends Controller
         $bisaDownload = $produk->tipe === 'gratis' || $membershipAktif || $sudahBeli;
         $hargaMembership = DB::table('m_profil')->value('harga_membership');
 
-        return view('public.produk-detail', compact('produk', 'galeri', 'membershipAktif', 'sudahBeli', 'bisaDownload', 'hargaMembership'));
+        return view('publik.produk-detail', compact('produk', 'galeri', 'membershipAktif', 'sudahBeli', 'bisaDownload', 'hargaMembership'));
     }
 }
