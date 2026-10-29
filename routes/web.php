@@ -35,19 +35,13 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::get('/produk/{slug}/download', 'Member\ProdukController@download');
 
         Route::group(['middleware' => 'role:admin', 'prefix' => 'admin'], function () {
-            Route::get('/dashboard', 'Dashboard\Dashboard@index');
-            Route::get('/blog', 'Blog\Blog@index');
+            Route::get('/dashboard', 'Dashboard\Dashboard@index')->name('admin.dashboard');
             Route::get('/pesanan', 'Pesanan\Pesanan@index');
 
             // Produk
-            Route::get('/produk', 'Produk\ProdukController@index');
-            Route::get('/produk/create', 'Produk\ProdukController@create');
-            Route::post('/produk', 'Produk\ProdukController@store');
             Route::post('/produk/gambar/urutan', 'Produk\ProdukController@urutanGambar');
             Route::delete('/produk/gambar/{id}', 'Produk\ProdukController@destroyGambar');
-            Route::get('/produk/{id}/edit', 'Produk\ProdukController@edit');
-            Route::put('/produk/{id}', 'Produk\ProdukController@update');
-            Route::delete('/produk/{id}', 'Produk\ProdukController@destroy');
+            Route::resource('produk', 'Produk\ProdukController')->except(['show']);
 
             // Pembelian
             Route::get('/pembelian', 'Pembelian\PembelianController@index');
@@ -64,13 +58,13 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::resource('user', 'User\UserController');
 
             // Artikel & Layanan
-            Route::resource('artikel', 'Artikel\ArtikelController');
-            Route::resource('layanan', 'Layanan\LayananController');
+            // Route::resource('artikel', 'Artikel\ArtikelController');
+            // Route::resource('layanan', 'Layanan\LayananController');
         });
 
         // Member
         Route::group(['middleware' => 'role:member', 'prefix' => 'member'], function () {
-            Route::get('/dashboard', 'Member\DashboardController@index');
+            Route::get('/dashboard', 'Member\DashboardController@index')->name('member.dashboard');
             Route::get('/produk-saya', 'Member\PembelianController@index');
             Route::post('/pembelian/{id_produk}', 'Member\PembelianController@store');
             Route::get('/upgrade', 'Member\MembershipController@index');

@@ -9,13 +9,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
+
 
 class ProdukController extends Controller
-{
-    private const THUMBNAIL_PATH = 'uploads/produk/thumbnail';
-
-    private const GALLERY_PATH = 'uploads/produk/galeri';
+{   
+    private const FOLDER = 'Produk';
 
     public function __construct()
     {
@@ -30,7 +30,7 @@ class ProdukController extends Controller
             ->select('tbl_produk.*', 'users.name as developer_name', 'm_kategori.name as kategori_name')
             ->whereNull('tbl_produk.id_hapus');
 
-        if (! $this->isAdminUtama()) {
+        if (Auth::id() !== 1) {
             $query->where('tbl_produk.id_user', Auth::id());
         }
 
@@ -63,127 +63,193 @@ class ProdukController extends Controller
     public function create()
     {
         $kategoris = DB::table('m_kategori')->orderBy('name')->get();
-        $developers = $this->developers();
+        $developer = Auth::user()->name;
 
-        return view('produk.create', compact('kategoris', 'developers'));
+        return view('produk.create', compact('kategoris', 'developer'));
     }
 
     public function store(Request $request)
     {
-        $data = $this->validateProduk($request);
-        $idUser = $this->resolveOwner($request);
-        $thumbnail = null;
-
         try {
-            DB::beginTransaction();
+            $pesan = [
+                'required' => ':attribute Tidak Boleh Kosong.!',
+                'min' => ':attribute Minimal diisi :min karakter !',
+                'max' => ':attribute Maksimal diisi  :max karakter !',
+            ];
 
-            if ($request->hasFile('thumbnail')) {
-                $thumbnail = $this->storeImage($request->file('thumbnail'), self::THUMBNAIL_PATH);
+            $validator = Validator::make($request->all(), [
+                'judul'        => ['required'],
+                'id_kategori'  => ['required'],
+                'tipe'         => ['required'],
+                'deskripsi'    => ['required'],
+                'thumbnail'    => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+                'gambar'       => ['required', 'array'],
+                'gambar.*'     => ['image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            ], $pesan);
+
+            if ($validator->fails()) {
+                toastr()->title('Gagal')->error($validator->errors()->first(), ['timeOut' => 5000]);
+                return back()->withInput(); 
             }
 
-            $idProduk = DB::table('tbl_produk')->insertGetId([
-                'id_user' => $idUser,
-                'id_kategori' => $data['id_kategori'] ?? null,
-                'judul' => $data['judul'],
-                'slug' => $this->uniqueSlug($data['judul']),
-                'deskripsi' => $data['deskripsi'],
-                'thumbnail' => $thumbnail,
-                'status' => $data['status'],
-                'harga' => $data['tipe'] === 'premium' ? ($data['harga'] ?? 0) : null,
-                'tipe' => $data['tipe'],
-                'link_drive' => $data['link_drive'] ?? null,
-                'link_github' => $data['link_github'] ?? null,
-                'created_at' => now(),
-                'updated_at' => now(),
+            $id_user = Auth::id(); // <-- Perbaikan: Gunakan $id_user
+            $tanggal = now()->format('Y/m'); // Format: 2023/10
+            
+            DB::beginTransaction();
+
+            // 1. Simpan Produk Dulu
+            $produk = DB::table('tbl_produk')->insertGetId([
+                'id_user'       => $id_user, // <-- Perbaikan: Gunakan $id_user
+                'id_kategori'   => $request->id_kategori,
+                'judul'         => $request->judul,
+                'slug'          => $this->uniqueSlug($request->judul),
+                'deskripsi'     => $request->deskripsi,
+                'thumbnail'     => null,
+                'status'        => $request->status,
+                'harga'         => $request->harga, 
+                'tipe'          => $request->tipe,
+                'link_drive'    => $request->link_drive,
+                'link_github'   => $request->link_github,
+                'created_at'    => now(),
+                'updated_at'    => now(),
             ]);
 
-            $this->storeGallery($idProduk, $request->file('gambar') ?: []);
+            // 2. Upload Thumbnail
+            if ($request->hasFile('thumbnail')) {
+                $pathThumbnail = $this->storeImage($request->file('thumbnail'), 'thumbnail', $produk, $tanggal);
+                DB::table('tbl_produk')->where('id', $produk)->update(['thumbnail' => $pathThumbnail]);
+            }
+
+            // 3. Upload Gambar Detail
+            $this->storeGallery($produk, $request->file('gambar') ?: [], $tanggal);
 
             DB::commit();
 
             toastr()->success('Produk berhasil ditambahkan!', ['timeOut' => 5000]);
-
             return redirect()->route('produk.index');
-        } catch (\Throwable $e) {
+
+        } catch (\Exception $e) {
             DB::rollBack();
-            $this->deleteImage($thumbnail, self::THUMBNAIL_PATH);
-
-            toastr()->error($e->getMessage(), ['timeOut' => 5000]);
-
+            toastr()->error('Gagal! Terjadi kesalahan sistem.', ['timeOut' => 5000]);
             return back()->withInput();
         }
     }
 
     public function edit($id)
     {
-        $produk = $this->findOwnedProduk($id);
+        $produk = DB::table('tbl_produk')->where('id', $id)->whereNull('id_hapus')->first();
+        
+        if (!$produk) {
+            toastr()->error('Produk tidak ditemukan!', ['timeOut' => 5000]);
+            return redirect()->route('produk.index');
+        }
+
         $kategoris = DB::table('m_kategori')->orderBy('name')->get();
         $galeri = DB::table('tbl_produk_gambar')->where('id_produk', $produk->id)->orderBy('urutan')->orderBy('id')->get();
-        $developers = $this->developers();
+        $developers = (Auth::id() === 1) ? User::role('admin')->orderBy('name')->get() : collect();
 
         return view('produk.edit', compact('produk', 'kategoris', 'galeri', 'developers'));
     }
 
     public function update(Request $request, $id)
     {
-        $produk = $this->findOwnedProduk($id);
-        $data = $this->validateProduk($request);
-        $idUser = $this->resolveOwner($request, $produk);
-        $thumbnail = null;
-
         try {
+            $produk = DB::table('tbl_produk')->where('id', $id)->whereNull('id_hapus')->first();
+            
+            if (!$produk) {
+                toastr()->error('Produk tidak ditemukan!', ['timeOut' => 5000]);
+                return back();
+            }
+
+            $pesan = [
+                'required' => ':attribute Tidak Boleh Kosong.!',
+                'min' => ':attribute Minimal diisi :min karakter !',
+                'max' => ':attribute Maksimal diisi  :max karakter !',
+            ];
+
+            $validator = Validator::make($request->all(), [
+                'judul'        => ['required'],
+                'deskripsi'    => ['required'],
+                'tipe'         => ['required'],
+                'thumbnail'    => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+                'gambar'       => ['required', 'array'],
+                'gambar.*'     => ['image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            ], $pesan);
+
+            if ($validator->fails()) {
+                foreach ($validator->errors()->all() as $gagal) {
+                    toastr()->error($gagal, ['timeOut' => 5000]);
+                }
+                return back()->withInput(); 
+            }
+
+            // Gunakan created_at sebagai acuan folder Tahun/Bulan
+            $tanggal = Carbon::parse($produk->created_at)->format('Y/m');
+            
+            $pathThumbnail = $produk->thumbnail;
+            $pathLama = $produk->thumbnail;
+
             DB::beginTransaction();
 
             if ($request->hasFile('thumbnail')) {
-                $thumbnail = $this->storeImage($request->file('thumbnail'), self::THUMBNAIL_PATH);
+                $pathThumbnail = $this->storeImage($request->file('thumbnail'), 'thumbnail', $produk->id, $tanggal);
             }
 
             DB::table('tbl_produk')->where('id', $produk->id)->update([
-                'id_user' => $idUser,
-                'id_kategori' => $data['id_kategori'] ?? null,
-                'judul' => $data['judul'],
-                'slug' => $this->uniqueSlug($data['judul'], $produk->id),
-                'deskripsi' => $data['deskripsi'],
-                'thumbnail' => $thumbnail ?: $produk->thumbnail,
-                'status' => $data['status'],
-                'harga' => $data['tipe'] === 'premium' ? ($data['harga'] ?? 0) : null,
-                'tipe' => $data['tipe'],
-                'link_drive' => $data['link_drive'] ?? null,
-                'link_github' => $data['link_github'] ?? null,
-                'updated_at' => now(),
+                'id_kategori'   => $request->id_kategori,
+                'judul'         => $request->judul,
+                'slug'          => $this->uniqueSlug($request->judul, $produk->id),
+                'deskripsi'     => $request->deskripsi,
+                'thumbnail'     => $pathThumbnail,
+                'status'        => $request->status,
+                'harga'         => $request->harga, 
+                'tipe'          => $request->tipe,
+                'link_drive'    => $request->link_drive,
+                'link_github'   => $request->link_github,
+                'updated_at'    => now(),
             ]);
 
-            $this->storeGallery($produk->id, $request->file('gambar') ?: []);
+            $this->storeGallery($produk->id, $request->file('gambar') ?: [], $tanggal);
 
             DB::commit();
-
-            if ($thumbnail) {
-                $this->deleteImage($produk->thumbnail, self::THUMBNAIL_PATH);
+            
+            if ($request->hasFile('thumbnail') && $pathLama) {
+                File::delete(public_path($pathLama));
             }
 
             toastr()->success('Produk berhasil diperbarui!', ['timeOut' => 5000]);
-
             return redirect()->route('produk.index');
-        } catch (\Throwable $e) {
+
+        } catch (\Exception $e) {
             DB::rollBack();
-            $this->deleteImage($thumbnail, self::THUMBNAIL_PATH);
-
-            toastr()->error($e->getMessage(), ['timeOut' => 5000]);
-
+            toastr()->error('Gagal! Terjadi kesalahan sistem.', ['timeOut' => 5000]);
             return back()->withInput();
         }
     }
 
     public function destroy($id)
     {
-        $produk = $this->findOwnedProduk($id);
+        $produk = DB::table('tbl_produk')->where('id', $id)->whereNull('id_hapus')->first();
 
-        DB::table('tbl_produk')->where('id', $produk->id)->update([
-            'id_hapus' => now(),
-            'updated_at' => now(),
-        ]);
+        if ($produk) {
+            // Ambil Tahun/Bulan dari created_at
+            $tanggal = Carbon::parse($produk->created_at)->format('Y/m');
+            $folderProduk = public_path(self::FOLDER . '/' . $tanggal . '/' . $produk->id);
 
-        return response()->json(['status' => 'success']);
+            // Hapus folder spesifik produk ini
+            if (File::isDirectory($folderProduk)) {
+                File::deleteDirectory($folderProduk);
+            }
+
+            DB::table('tbl_produk')->where('id', $produk->id)->update([
+                'id_hapus'   => Auth::id(),
+                'updated_at' => now(),
+            ]);
+            
+            return response()->json(['status' => 'success']);
+        }
+
+        return response()->json(['status' => 'error']);
     }
 
     public function destroyGambar($id)
@@ -191,13 +257,15 @@ class ProdukController extends Controller
         $gambar = DB::table('tbl_produk_gambar')->where('id', $id)->first();
 
         if (! $gambar) {
-            abort(404);
+            return response()->json(['status' => 'error']);
         }
 
-        $this->findOwnedProduk($gambar->id_produk);
+        $pathGambar = public_path($gambar->path);
+        if (File::exists($pathGambar)) {
+            File::delete($pathGambar);
+        }
 
         DB::table('tbl_produk_gambar')->where('id', $gambar->id)->delete();
-        $this->deleteImage($gambar->path, self::GALLERY_PATH);
 
         return response()->json(['status' => 'success']);
     }
@@ -208,14 +276,6 @@ class ProdukController extends Controller
             'urutan' => 'required|array',
             'urutan.*' => 'integer',
         ]);
-
-        $gambar = DB::table('tbl_produk_gambar')->whereIn('id', $data['urutan'])->get();
-
-        if ($gambar->count() !== count($data['urutan']) || $gambar->pluck('id_produk')->unique()->count() !== 1) {
-            abort(422);
-        }
-
-        $this->findOwnedProduk($gambar->first()->id_produk);
 
         DB::transaction(function () use ($data) {
             foreach ($data['urutan'] as $urutan => $id) {
@@ -229,82 +289,15 @@ class ProdukController extends Controller
         return response()->json(['status' => 'success']);
     }
 
-    private function validateProduk(Request $request): array
+    // ==========================================
+    // FUNGSI BANTUAN (PRIVATE)
+    // ==========================================
+
+    private function storeImage($file, string $tipe, int $produk, string $tanggal): string
     {
-        return $request->validate([
-            'judul' => 'required|string|max:255',
-            'id_kategori' => 'nullable|exists:m_kategori,id',
-            'deskripsi' => 'required|string',
-            'tipe' => 'required|in:gratis,premium',
-            'harga' => 'nullable|required_if:tipe,premium|numeric|min:0',
-            'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'gambar' => 'nullable|array',
-            'gambar.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
-            'link_github' => 'nullable|required_if:tipe,gratis|url|max:255',
-            'link_drive' => 'nullable|required_if:tipe,premium|url|max:255',
-            'status' => 'required|in:Y,T',
-            'id_user' => 'nullable|exists:users,id',
-        ]);
-    }
-
-    private function resolveOwner(Request $request, ?object $produk = null): int
-    {
-        if (! $this->isAdminUtama()) {
-            return (int) ($produk->id_user ?? Auth::id());
-        }
-
-        if ($request->filled('id_user')) {
-            $developer = User::role('admin')->where('id', $request->id_user)->first();
-
-            if (! $developer) {
-                throw ValidationException::withMessages([
-                    'id_user' => 'Developer yang dipilih tidak valid.',
-                ]);
-            }
-
-            return (int) $developer->id;
-        }
-
-        return (int) Auth::id();
-    }
-
-    private function findOwnedProduk($id): object
-    {
-        $produk = DB::table('tbl_produk')->where('id', $id)->whereNull('id_hapus')->first();
-
-        if (! $produk) {
-            abort(404);
-        }
-
-        if (! $this->isAdminUtama() && (int) $produk->id_user !== (int) Auth::id()) {
-            abort(403);
-        }
-
-        return $produk;
-    }
-
-    private function uniqueSlug(string $judul, ?int $ignoreId = null): string
-    {
-        $base = Str::slug($judul) ?: 'produk';
-        $slug = $base;
-        $counter = 2;
-
-        while (DB::table('tbl_produk')
-            ->where('slug', $slug)
-            ->when($ignoreId, function ($query) use ($ignoreId) {
-                $query->where('id', '!=', $ignoreId);
-            })
-            ->exists()) {
-            $slug = $base.'-'.$counter;
-            $counter++;
-        }
-
-        return $slug;
-    }
-
-    private function storeImage($file, string $directory): string
-    {
-        $destination = public_path($directory);
+        // Struktur: gambar/produk/2023/10/11/thumbnail
+        $folder = self::FOLDER . '/' . $tanggal . '/' . $produk . '/' . $tipe;
+        $destination = public_path($folder);
 
         if (! File::isDirectory($destination)) {
             File::makeDirectory($destination, 0755, true);
@@ -314,52 +307,45 @@ class ProdukController extends Controller
         $name = now()->format('YmdHis').'_'.Str::random(8).'.'.$extension;
         $file->move($destination, $name);
 
-        return $name;
+        return $folder  . '/' . $name; 
     }
 
-    private function deleteImage(?string $name, string $directory): void
+    private function storeGallery(int $id, array $files, string $tanggal): void
     {
-        if (! $name) {
-            return;
-        }
-
-        $path = public_path($directory.'/'.$name);
-
-        if (File::exists($path)) {
-            File::delete($path);
-        }
-    }
-
-    private function storeGallery(int $idProduk, array $files): void
-    {
-        $urutan = (int) DB::table('tbl_produk_gambar')->where('id_produk', $idProduk)->max('urutan');
+        $urutan = (int) DB::table('tbl_produk_gambar')->where('id_produk', $id)->max('urutan');
 
         foreach ($files as $file) {
             if (! $file) {
                 continue;
             }
 
+            $pathDetail = $this->storeImage($file, 'detail', $id, $tanggal);
+
             DB::table('tbl_produk_gambar')->insert([
-                'id_produk' => $idProduk,
-                'path' => $this->storeImage($file, self::GALLERY_PATH),
-                'urutan' => ++$urutan,
+                'id_produk' => $id,
+                'path'      => $pathDetail,
+                'urutan'    => ++$urutan,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
     }
 
-    private function developers()
+    private function uniqueSlug(string $judul, ?int $ignoreId = null): string
     {
-        if (! $this->isAdminUtama()) {
-            return collect();
+        $base = Str::slug($judul) ?: 'produk';
+        $slug = $base;
+        $counter = 2;
+
+        while (DB::table('tbl_produk')->where('slug', $slug)
+            ->when($ignoreId, function ($query) use ($ignoreId) {
+                $query->where('id', '!=', $ignoreId);
+            })
+            ->exists()) {
+            $slug = $base.'-'.$counter;
+            $counter++;
         }
 
-        return User::role('admin')->orderBy('name')->get();
-    }
-
-    private function isAdminUtama(): bool
-    {
-        return Auth::check() && (int) Auth::id() === 1;
+        return $slug;
     }
 }

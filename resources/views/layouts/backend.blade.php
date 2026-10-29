@@ -17,11 +17,14 @@
 	<link rel="stylesheet" href="{{ url('backend/plugins/daterangepicker/daterangepicker.css') }}">
 	<link rel="stylesheet" href="{{ url('backend/plugins/toastr/toastr.min.css') }}">
 	<link rel="stylesheet" href="{{ url('backend/plugins/summernote/summernote-bs4.css') }}">
-
+	<link rel="stylesheet" href="{{ url('backend/plugins/select2/css/select2.min.css') }}">
+	<link rel="stylesheet" href="{{ url('backend/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+	<link rel="stylesheet" href="{{ url('backend/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
+	<link rel="stylesheet" href="{{ url('backend/plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
 </head>
 <style>
 	body {
-		font-family: Arial, Helvetica, sans-serif;
+		font-family: 'Roboto', sans-serif;
 		font-weight: 500;
 	}
 
@@ -77,14 +80,44 @@
 	<script src="{{ url('backend/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
 	<script src="{{ url('backend/plugins/summernote/summernote-bs4.min.js') }}"></script>
 	<script src="{{ url('backend/plugins/summernote/summernote-bs4.min.js') }}"></script>
+	<script src="{{ url('backend/plugins/select2/js/select2.full.min.js') }}"></script>
+	<script src="{{ url('plugins/datatables/jquery.dataTables.min.js') }}"></script>
+	<script src="{{ url('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+	<script src="{{ url('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
+	<script src="{{ url('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+
+	<script>
+		$(function () {
+			$("#example1").DataTable({
+				"responsive": true,
+				"autoWidth": false,
+				"paging": true,
+				"lengthChange": true,
+				"searching": true,
+				"ordering": true,
+				"info": true,
+			});
+		});
+	</script>
 	<script>
 		$(function () {
 			// Summernote
 			$('.textarea').summernote()
 		})
+
+	</script>
+	<script>
+		$(document).ready(function () {
+			// Otomatis aktifkan Select2 di semua <select> yang TIDAK memiliki class 'no-select2'
+			$('select').not('.no-select2').select2({
+				theme: 'bootstrap4',
+				width: '100%'
+			});
+		});
 	</script>
 
-	<!-- FUNGSI GLOBAL HAPUS DATA  -->
+
+
 
 	<script>
 		// FUNGSI GLOBAL HAPUS DATA
@@ -120,7 +153,7 @@
 							} catch (e) {
 								console.log("Toastr gagal dimuat.");
 							}
-							setTimeout(function () { location.reload(); }, 2000);
+							setTimeout(function () { location.reload(); }, 1000);
 						}
 					},
 					error: function () {
