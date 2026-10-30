@@ -26,7 +26,7 @@
                   <a href="{{ url('admin/role/create') }}" class="btn btn-success "> 
                      <i class="fas fa-plus-circle"> </i>Tambah </a>
                   <div class="card-tools">
-                     <form action="{{ url('admin/role/index') }}" method="GET">
+                     <form action="{{ url('admin/role') }}" method="GET">
                         <div class="input-group input-group-sm">
                            <input type="text" name="cari" placeholder="Cari Nama" class="form-control">
                            <span class="input-group-append">

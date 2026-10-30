@@ -60,18 +60,38 @@
 
                 <li class="nav-item {{ setOpen('admin/produk') }}">
                     @can('Navigasi Produk')
-                    <a class="nav-link"><i class="fa fa-code"></i> <p> Produk <i class="fas fa-arrow-alt-circle-down right"></i></p></a>
+                    <a class="nav-link"><i class="fa fa-code"></i> <p> Source Code <i class="fas fa-arrow-alt-circle-down right"></i></p></a>
                     @endcan
                     <ul class="nav nav-treeview">
                         @can('Master Produk')
                         <li class="nav-item"> <a href="{{ url('admin/produk') }}" class="nav-link {{ request()->is('admin/produk') ? 'active' : '' }}"> <i class="fa fa-circle"></i> <p> Daftar Produk </p> </a> </li>
-                        <li class="nav-item"> <a href="{{ url('admin/produk/create') }}" class="nav-link {{ setActive('admin/produk/create') }}"> <i class="fa fa-circle"></i> <p> Tambah Produk </p> </a> </li>
                         @endcan
                     </ul>
                 </li>
-                
+                <li class="nav-item {{ setOpen('user') . setOpen('role') . setOpen('permission') }}">
+                    @can('Navigasi Artikel')
+                    <a  class="nav-link"><i class="fa fa-pen-nib"></i> <p> Blog  Artikel <i class="fas fa-arrow-alt-circle-down right"></i></p> </a>
+                    @endcan
+                    <ul class="nav nav-treeview">
+                        @can('Master Artikel')
+                        <li class="nav-item"> <a href="{{ url('admin/artikel') }}" class="nav-link {{ setActive('admin/artikel') }}"> <i class="fa fa-circle"></i> <p> Daftar Artikel </p> </a> </li>
+                        @endcan
+                    </ul>
+                </li>
+
+                <li class="nav-item {{ setOpen('user') . setOpen('role') . setOpen('permission') }}">
+                    @can('Navigasi Layanan')
+                    <a  class="nav-link"><i class="fa fa-spinner"></i> <p> Data Layanan <i class="fas fa-arrow-alt-circle-down right"></i></p> </a>
+                    @endcan
+                    <ul class="nav nav-treeview">
+                        @can('Master Layanan')
+                        <li class="nav-item"> <a href="{{ url('admin/layanan') }}" class="nav-link {{ setActive('admin/layanan') }}"> <i class="fa fa-circle"></i> <p> Daftar Layanan </p> </a> </li>
+                        @endcan
+                    </ul>
+                </li>
+
                 @can('Master Produk')
-                <li class="nav-item {{ setOpen('admin/pembelian') }}">
+                <li class="nav-item {{ setOpen('user') . setOpen('role') . setOpen('permission') }}">
                     <a href="{{ url('admin/pembelian') }}" class="nav-link {{ setActive('admin/pembelian') }}">
                         <i class="fa fa-shopping-cart"></i>
                         <p> Pembelian </p>
@@ -80,45 +100,32 @@
                 @endcan
 
                 <li class="nav-item {{ setOpen('user') . setOpen('role') . setOpen('permission') }}">
-                    <a  class="nav-link"><i class="fa fa-pen-nib"></i> <p> Blog / Artikel <i class="fas fa-arrow-alt-circle-down right"></i></p> </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item"> <a href="{{ url('permission') }}" class="nav-link {{ setActive('permission') }}"> <i class="fa fa-circle"></i> <p> Daftar Artikel </p> </a> </li>
-                    </ul>
-                </li>
-                <li class="nav-item {{ setOpen('user') . setOpen('role') . setOpen('permission') }}">
-                    <a  class="nav-link"><i class="fa fa-spinner"></i> <p> Data Layanan <i class="fas fa-arrow-alt-circle-down right"></i></p> </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item"> <a href="{{ url('permission') }}" class="nav-link {{ setActive('permission') }}"> <i class="fa fa-circle"></i> <p> Daftar Layanan </p> </a> </li>
-                    </ul>
-                </li>
-
-                <li class="nav-item {{ setOpen('user') . setOpen('role') . setOpen('permission') }}">
                     <a  class="nav-link"><i class="fa fa-comment"></i> <p> Pesan Kontak <i class="fas fa-arrow-alt-circle-down right"></i></p> </a>
                     <ul class="nav nav-treeview">
-                        <li class="nav-item"> <a href="{{ url('permission') }}" class="nav-link {{ setActive('permission') }}"> <i class="fa fa-circle"></i> <p> Kotak Masuk (Inbox) </p> </a> </li>
+                        <li class="nav-item"> <a href="{{ url('admin/') }}" class="nav-link {{ setActive('admin/artikel') }}"> <i class="fa fa-circle"></i> <p> Kotak Masuk (Inbox) </p> </a> </li>
                     </ul>
                 </li>
 
                 <li class="nav-item {{ setOpen('user') . setOpen('role') . setOpen('permission') }}">
                     <a  class="nav-link"><i class="fa fa-id-card"></i> <p> Pesanan / Transaksi <i class="fas fa-arrow-alt-circle-down right"></i></p> </a>
                     <ul class="nav nav-treeview">
-                        <li class="nav-item"> <a href="{{ url('permission') }}" class="nav-link {{ setActive('permission') }}"> <i class="fa fa-circle"></i> <p> Kotak Masuk (Inbox) </p> </a> </li>
+                        <li class="nav-item"> <a href="{{ url('admin/') }}" class="nav-link {{ setActive('admin/artikel') }}"> <i class="fa fa-circle"></i> <p> Kotak Masuk (Inbox) </p> </a> </li>
                     </ul>
                 </li>
 
                 <li class="nav-item {{ setOpen('user') . setOpen('role') . setOpen('permission') }}">
                     <a  class="nav-link"><i class="fa fa-th"></i> <p> Laporan <i class="fas fa-arrow-alt-circle-down right"></i></p> </a>
                     <ul class="nav nav-treeview">
-                        <li class="nav-item"> <a href="{{ url('permission') }}" class="nav-link {{ setActive('permission') }}"> <i class="fa fa-circle"></i> <p> Kotak Masuk (Inbox) </p> </a> </li>
+                        <li class="nav-item"> <a href="{{ url('admin/') }}" class="nav-link {{ setActive('admin/artikel') }}"> <i class="fa fa-circle"></i> <p> Kotak Masuk (Inbox) </p> </a> </li>
                     </ul>
                 </li>
 
                 <li class="nav-item {{ setOpen('user') . setOpen('role') . setOpen('permission') }}">
                     <a  class="nav-link"><i class="fa fa-rocket"></i> <p> Support System<i class="fas fa-arrow-alt-circle-down right"></i></p> </a>
                     <ul class="nav nav-treeview">
-                        <li class="nav-item"> <a href="{{ url('permission') }}" class="nav-link {{ setActive('permission') }}"> <i class="fa fa-circle"></i> <p> Log Aktivitas  User</p> </a> </li>
-                        <li class="nav-item"> <a href="{{ url('permission') }}" class="nav-link {{ setActive('permission') }}"> <i class="fa fa-circle"></i> <p> FAQ / Bantuan </p> </a> </li>
-                        <li class="nav-item"> <a href="{{ url('permission') }}" class="nav-link {{ setActive('permission') }}"> <i class="fa fa-user-lock"></i> <p> Ganti Password </p> </a> </li>
+                        <li class="nav-item"> <a href="{{ url('admin/') }}" class="nav-link {{ setActive('admin/artikel') }}"> <i class="fa fa-circle"></i> <p> Log Aktivitas  User</p> </a> </li>
+                        <li class="nav-item"> <a href="{{ url('admin/') }}" class="nav-link {{ setActive('admin/artikel') }}"> <i class="fa fa-circle"></i> <p> FAQ / Bantuan </p> </a> </li>
+                        <li class="nav-item"> <a href="{{ url('admin/') }}" class="nav-link {{ setActive('admin/artikel') }}"> <i class="fa fa-user-lock"></i> <p> Ganti Password </p> </a> </li>
                         <li class="nav-item"> <a href="{{ url('logout') }}" class="nav-link {{ setActive('logout') }}"> <i class="fa fa-sign-out-alt"></i> <p> Log Out </p> </a> </li>
                     </ul>
                 </li>

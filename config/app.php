@@ -127,6 +127,7 @@ return [
     'aliases' => [
     // log aktifitas
         'LogActivity' => App\Helpers\LogActivity::class,
+        'Str' => Illuminate\Support\Str::class,
     ],
 
 ];

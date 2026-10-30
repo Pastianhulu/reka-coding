@@ -29,6 +29,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         return 'Halaman Berhasil di optimize';
     });
 
+    Route::get('/logout', 'Auth\LoginController@logout');
     Auth::routes();
 
     Route::group(['middleware' => 'auth'], function () {
@@ -57,9 +58,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::resource('role', 'User\RoleController');
             Route::resource('user', 'User\UserController');
 
-            // Artikel & Layanan
-            // Route::resource('artikel', 'Artikel\ArtikelController');
-            // Route::resource('layanan', 'Layanan\LayananController');
+            Route::resource('artikel', 'Artikel\ArtikelController');
+            Route::resource('layanan', 'Layanan\LayananController');
         });
 
         // Member

@@ -37,7 +37,7 @@
                      <div class="row">
                         <div class="col-md-12">
                            <div class="form-group">
-                              <label>Judul Produk <span class="text-danger">*</span></label>
+                              <label>Judul Produk</label>
                               <input type="text" name="judul" value="{{ old('judul') }}" placeholder="Judul Produk" class="form-control">
                            </div>
                         </div>
@@ -66,7 +66,7 @@
                      <div class="row">
                         <div class="col-md-4">
                            <div class="form-group">
-                              <label>Tipe <span class="text-danger">*</span></label>
+                              <label>Tipe</label>
                               <select name="tipe" class="form-control">
                                  <option value="">-</option>
                                  <option value="gratis" {{ old('tipe') === 'gratis' ? 'selected' : '' }}>GRATIS</option>
@@ -82,7 +82,7 @@
                         </div>
                         <div class="col-md-4">
                            <div class="form-group">
-                              <label>Status <span class="text-danger">*</span></label>
+                              <label>Status</label>
                               <select name="status" class="form-control">
                                  <option value="T" {{ old('status') === 'T' ? 'selected' : '' }}>TIDAK AKTIF</option>
                                  <option value="Y" {{ old('status') === 'Y' ? 'selected' : '' }}>AKTIF</option>
@@ -92,7 +92,7 @@
                      </div>
 
                      <div class="form-group">
-                        <label>Deskripsi <span class="text-danger">*</span></label>
+                        <label>Deskripsi</label>
                         <textarea name="deskripsi" class="textarea form-control" rows="10" placeholder="Deskripsi">{{ old('deskripsi') }}</textarea>
                      </div>
 

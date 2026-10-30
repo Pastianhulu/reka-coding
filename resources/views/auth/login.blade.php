@@ -5,6 +5,7 @@
 
     
     <style>
+        
         .login-wrap {
             min-height: calc(100vh - 160px);
             display: flex;

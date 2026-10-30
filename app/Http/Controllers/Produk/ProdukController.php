@@ -70,6 +70,8 @@ class ProdukController extends Controller
 
     public function store(Request $request)
     {
+        $pathThumbnail = null;
+
         try {
             $pesan = [
                 'required' => ':attribute Tidak Boleh Kosong.!',
@@ -81,9 +83,10 @@ class ProdukController extends Controller
                 'judul'        => ['required'],
                 'id_kategori'  => ['required'],
                 'tipe'         => ['required'],
+                'status'       => ['required'],
                 'deskripsi'    => ['required'],
                 'thumbnail'    => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-                'gambar'       => ['required', 'array'],
+                'gambar'       => ['nullable', 'array'],
                 'gambar.*'     => ['image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             ], $pesan);
 
@@ -92,14 +95,13 @@ class ProdukController extends Controller
                 return back()->withInput(); 
             }
 
-            $id_user = Auth::id(); // <-- Perbaikan: Gunakan $id_user
-            $tanggal = now()->format('Y/m'); // Format: 2023/10
+            $id_user = Auth::id();
+            $tanggal = now()->format('Y/m');
             
             DB::beginTransaction();
 
-            // 1. Simpan Produk Dulu
             $produk = DB::table('tbl_produk')->insertGetId([
-                'id_user'       => $id_user, // <-- Perbaikan: Gunakan $id_user
+                'id_user'       => $id_user, 
                 'id_kategori'   => $request->id_kategori,
                 'judul'         => $request->judul,
                 'slug'          => $this->uniqueSlug($request->judul),
@@ -114,13 +116,11 @@ class ProdukController extends Controller
                 'updated_at'    => now(),
             ]);
 
-            // 2. Upload Thumbnail
             if ($request->hasFile('thumbnail')) {
                 $pathThumbnail = $this->storeImage($request->file('thumbnail'), 'thumbnail', $produk, $tanggal);
                 DB::table('tbl_produk')->where('id', $produk)->update(['thumbnail' => $pathThumbnail]);
             }
 
-            // 3. Upload Gambar Detail
             $this->storeGallery($produk, $request->file('gambar') ?: [], $tanggal);
 
             DB::commit();
@@ -128,9 +128,18 @@ class ProdukController extends Controller
             toastr()->success('Produk berhasil ditambahkan!', ['timeOut' => 5000]);
             return redirect()->route('produk.index');
 
-        } catch (\Exception $e) {
-            DB::rollBack();
+            } catch (\Throwable $e) {
+                if (DB::transactionLevel() > 0) {
+                    DB::rollBack();
+                }
+
+                if ($pathThumbnail) {
+                    File::delete(public_path($pathThumbnail));
+                }
+
+            Log::error('Produk update gagal: '.$e->getMessage());
             toastr()->error('Gagal! Terjadi kesalahan sistem.', ['timeOut' => 5000]);
+
             return back()->withInput();
         }
     }
@@ -144,6 +153,7 @@ class ProdukController extends Controller
             return redirect()->route('produk.index');
         }
 
+       
         $kategoris = DB::table('m_kategori')->orderBy('name')->get();
         $galeri = DB::table('tbl_produk_gambar')->where('id_produk', $produk->id)->orderBy('urutan')->orderBy('id')->get();
         $developers = (Auth::id() === 1) ? User::role('admin')->orderBy('name')->get() : collect();
@@ -153,13 +163,17 @@ class ProdukController extends Controller
 
     public function update(Request $request, $id)
     {
-        try {
+       try {
             $produk = DB::table('tbl_produk')->where('id', $id)->whereNull('id_hapus')->first();
             
             if (!$produk) {
                 toastr()->error('Produk tidak ditemukan!', ['timeOut' => 5000]);
                 return back();
             }
+
+            $pathThumbnail = $produk->thumbnail;  
+            $pathLama = $produk->thumbnail;
+
 
             $pesan = [
                 'required' => ':attribute Tidak Boleh Kosong.!',
@@ -172,7 +186,7 @@ class ProdukController extends Controller
                 'deskripsi'    => ['required'],
                 'tipe'         => ['required'],
                 'thumbnail'    => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-                'gambar'       => ['required', 'array'],
+                'gambar'       => ['nullable', 'array'],
                 'gambar.*'     => ['image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             ], $pesan);
 
@@ -183,12 +197,8 @@ class ProdukController extends Controller
                 return back()->withInput(); 
             }
 
-            // Gunakan created_at sebagai acuan folder Tahun/Bulan
             $tanggal = Carbon::parse($produk->created_at)->format('Y/m');
             
-            $pathThumbnail = $produk->thumbnail;
-            $pathLama = $produk->thumbnail;
-
             DB::beginTransaction();
 
             if ($request->hasFile('thumbnail')) {
@@ -220,9 +230,16 @@ class ProdukController extends Controller
             toastr()->success('Produk berhasil diperbarui!', ['timeOut' => 5000]);
             return redirect()->route('produk.index');
 
-        } catch (\Exception $e) {
-            DB::rollBack();
+            } catch (\Throwable $e) {
+                if (DB::transactionLevel() > 0) {
+                    DB::rollBack();
+                }if ($pathThumbnail && $pathThumbnail !== $pathLama) {
+                    File::delete(public_path($pathThumbnail));
+                }
+
+            Log::error('Produk update gagal: '.$e->getMessage());
             toastr()->error('Gagal! Terjadi kesalahan sistem.', ['timeOut' => 5000]);
+
             return back()->withInput();
         }
     }
